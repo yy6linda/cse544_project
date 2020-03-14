@@ -7,15 +7,52 @@ We scrapped an online mapping tools [crosswalk]((http://www.icd10codesearch.com/
 python condition_ranking.py
 ```
 ### Mapping method 2
+Note: This code suppose you have have already downloaded the SynPUF data (https://drive.google.com/file/d/18EjMxyA6NsqBo9eed_Gab1ESHWPxJygz/view) and load them into a PostgreSQL database with OMOP v5.2 schema through the SQL script provided in OMOP CommonDataModel GitHub repository (https://github.com/OHDSI/CommonDataModel/archive/v5.2.2.zip).
+```sql
 
-[to do for Sicheng] put your code, and running order here; brief describe your methods in 2-3 lines
+```
+We built a mapping dictionary from a csv spreadsheet provided by Lussier’s lab, where relationship between ICD-9 and ICD-10 were clustered into four categories, one-to-one, many-to-one, one-to-many and no relationship. Through prioritizing these four kinds of relationship(one-to-one > many-to-one > one-to-many > no relationship ), the method can return the optimal mapping result. Meanwhile, inside each searching step, we also applied a fuzzy mapping process if we did not find it in the dictionary with the exact code.
 ## drug-disease relationship validation
-In order to get the drug-disease(type 1 diabetes) relationship, we queried condition table and selected visits that assigned at least one type 1 diabetes diagnosis code(under category E10)and we looked into the drug prescription associated with the same visit_occurrence_id, by doing so we got all the drug prescription for type1 diabetes and we ranked it by drug frequency
+In order to get the drug-disease(type 1 diabetes) relationship, we queried condition table and selected visits that assigned at least one type 1 diabetes diagnosis code(under category E10)and we looked into the drug prescription associated with the same visit_occurrence_id, by doing so we got all the drug prescription for type1 diabetes and we ranked it by drug frequency.
 
-[to do for Sicheng] put your code and running order here
+Note: You need to prepare 2 separate csv files to do the drug-disease relationship validation
+```python
+import pandas as pd
+
+
+integrate_type1d_count_table = uw_type2d_drug.merge(synpuf_type2d_drug, how='left', on='drug')
+1 - integrate_type1d_count_table.synpuf_count.isna().sum() / 50
+
+integrate_type1d_count_table.to_csv('integrate_1d_table.csv')
+```
 ## Binomial test
-[to do for Sicheng] put your code and running order here
-## mortality prediction model
+Note: You need to prepare a integrate count table to do this test.
+```python
+from scipy import stats
+import pandas as pd
+
+
+number_of_synpuf_patients = 98514
+p_list = list()
+for i in range(10):
+    p_value = stats.binom_test(integrate_count_table['disease_conut_in_synpuf_patients'][i],
+                               n=number_of_synpuf_patients, p=integrate_count_table['disease_conut_in_real_patients'][i] / number_of_real_patients)
+    p_list.append(p_value)
+
+integrate_count_table['p-value'] = pd.Series(p_list)
+integrate_count_table.to_csv('integrate_table.csv')
+```
+## Spearman Correlation test
+Note: You need to prepare a integrate count table to do this test.
+```python
+from scipy import stats
+import pandas as pd
+
+
+integrate_count_table = integrate_count_table.fillna(0)
+stats.spearmanr(integrate_count_table['disease_conut_in_real_patients'], integrate_count_table['disease_conut_in_synpuf_patients'])
+```
+## Mortality prediction model
 Here we provide dockerized machine learning models for mortality prediction, using three set of features:
 1. demographic features;
 2. demographic features + binary indicator for 5 chronic disease
