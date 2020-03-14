@@ -36,7 +36,8 @@ number_of_synpuf_patients = 98514
 p_list = list()
 for i in range(10):
     p_value = stats.binom_test(integrate_count_table['disease_conut_in_synpuf_patients'][i],
-                               n=number_of_synpuf_patients, p=integrate_count_table['disease_conut_in_real_patients'][i] / number_of_real_patients)
+                               n=number_of_synpuf_patients, 
+                               p=integrate_count_table['disease_conut_in_real_patients'][i] / number_of_real_patients)
     p_list.append(p_value)
 
 integrate_count_table['p-value'] = pd.Series(p_list)
@@ -49,7 +50,6 @@ from scipy import stats
 import pandas as pd
 
 
-integrate_count_table = integrate_count_table.fillna(0)
 stats.spearmanr(integrate_count_table['disease_conut_in_real_patients'], integrate_count_table['disease_conut_in_synpuf_patients'])
 ```
 ## Mortality prediction model
