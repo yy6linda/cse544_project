@@ -15,42 +15,38 @@ We built a mapping dictionary from a csv spreadsheet provided by Lussier’s lab
 ## drug-disease relationship validation
 In order to get the drug-disease(type 1 diabetes) relationship, we queried condition table and selected visits that assigned at least one type 1 diabetes diagnosis code(under category E10)and we looked into the drug prescription associated with the same visit_occurrence_id, by doing so we got all the drug prescription for type1 diabetes and we ranked it by drug frequency.
 
-Note: You need to prepare 2 separate csv files to do the drug-disease relationship validation
+Note: You need to prepare two tables to do the drug-disease relationship validation. The first table should include the count of the patient grouped by the drug they were administered in the visit they were diagnosed with the disease we want to look up with using the real data, in the decsending order. The second table should include the count of the patient grouped by the drug they were administered in the visit they were diagnosed with the disease we want to look up with using the SynPUF data. 
+
 ```python
 import pandas as pd
 
-
-integrate_type1d_count_table = uw_type2d_drug.merge(synpuf_type2d_drug, how='left', on='drug')
-1 - integrate_type1d_count_table.synpuf_count.isna().sum() / 50
-
-integrate_type1d_count_table.to_csv('integrate_1d_table.csv')
+# We used type 1 diabetes as an example, suppose the real drug data is saved as real_type1d_drug, the SynPUF drug data is saved as synpuf_type1d_drug.
+integrate_type1d_count_table = real_type1d_drug.merge(synpuf_type1d_drug, how='left', on='drug')
+# We used the overlapping rate of the top 50 drug administered by that disease
+overlapping_rate = 1 - integrate_type1d_count_table.synpuf_count.isna().sum() / 50
+integrate_type1d_count_table.to_csv('integrate_type1d_table.csv')
 ```
-## Binomial test
-Note: You need to prepare a integrate count table to do this test.
+## Binomial test and Spearman Correlation test
+Note: You need to prepare an integrate count table to do this test. The table should include the count of the patient grouped by the disease they were diagnosed in the real data and the count of the patient grouped by the disease they were diagnosed in the SynPUF data, sorting in the descending order by the real data count column.
 ```python
 from scipy import stats
 import pandas as pd
 
-
+# Binomial test
 number_of_synpuf_patients = 98514
 p_list = list()
+# We used top 10 common disease occurred in the real data to do this test
 for i in range(10):
     p_value = stats.binom_test(integrate_count_table['disease_conut_in_synpuf_patients'][i],
                                n=number_of_synpuf_patients, 
                                p=integrate_count_table['disease_conut_in_real_patients'][i] / number_of_real_patients)
     p_list.append(p_value)
-
 integrate_count_table['p-value'] = pd.Series(p_list)
 integrate_count_table.to_csv('integrate_table.csv')
-```
-## Spearman Correlation test
-Note: You need to prepare a integrate count table to do this test.
-```python
-from scipy import stats
-import pandas as pd
 
-
-stats.spearmanr(integrate_count_table['disease_conut_in_real_patients'], integrate_count_table['disease_conut_in_synpuf_patients'])
+# Spearman Correlation test
+correlation_value, p_value = stats.spearmanr(integrate_count_table['disease_conut_in_real_patients'], 
+                                             integrate_count_table['disease_conut_in_synpuf_patients'])
 ```
 ## Mortality prediction model
 Here we provide dockerized machine learning models for mortality prediction, using three set of features:
