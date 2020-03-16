@@ -2,12 +2,12 @@
 This repository describes how the ontology mapping from ICD-9 to ICD-10 is conducted.
 ## Ontology Mapping
 ### Mapping method 1
-We scrapped an online mapping tools [crosswalk]((http://www.icd10codesearch.com/)) and converted ICD9 - 10 mapping by running condition_ranking.py and results with the rankings of mapped ICD-10 codes and ICD category were saved as mapped_condition_count.csv and hierarchy_condition_count.csv
+We scrapped an online mapping tools [crosswalk](http://www.icd10codesearch.com/) and converted ICD9 - 10 mapping by running condition_ranking.py and results with the rankings of mapped ICD-10 codes and ICD category were saved as mapped_condition_count.csv and hierarchy_condition_count.csv
 ```python
 python condition_ranking.py
 ```
 ### Mapping method 2
-Note: This code suppose you have have already downloaded the SynPUF data (https://drive.google.com/file/d/18EjMxyA6NsqBo9eed_Gab1ESHWPxJygz/view) and load them into a PostgreSQL database with OMOP v5.2 schema through the SQL script provided in OMOP CommonDataModel GitHub repository (https://github.com/OHDSI/CommonDataModel/archive/v5.2.2.zip).
+Note: This code suppose you have have already downloaded the [SynPUF data](https://drive.google.com/file/d/18EjMxyA6NsqBo9eed_Gab1ESHWPxJygz/view) and load them into a PostgreSQL database with OMOP v5.2 schema through the SQL script provided in [OMOP CommonDataModel GitHub repository](https://github.com/OHDSI/CommonDataModel/archive/v5.2.2.zip).
 ```sql
 
 ```
