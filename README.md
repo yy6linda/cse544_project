@@ -7,9 +7,10 @@ We scrapped an online mapping tools [crosswalk](http://www.icd10codesearch.com/)
 python condition_ranking.py
 ```
 ### Mapping method 2
-Note: This code suppose you have have already downloaded the [SynPUF data](https://drive.google.com/file/d/18EjMxyA6NsqBo9eed_Gab1ESHWPxJygz/view) and load them into a PostgreSQL database with OMOP v5.2 schema through the SQL script provided in [OMOP CommonDataModel GitHub repository](https://github.com/OHDSI/CommonDataModel/archive/v5.2.2.zip).
-```sql
-
+Note: This code suppose you have have already downloaded the [SynPUF data](https://drive.google.com/file/d/18EjMxyA6NsqBo9eed_Gab1ESHWPxJygz/view) and load them into a PostgreSQL database with OMOP v5.2 schema through the SQL script provided in [OMOP CommonDataModel GitHub repository](https://github.com/OHDSI/CommonDataModel/archive/v5.2.2.zip). Before run the icd9_icd10_mapper.sql file, you need to open it, go to the line 11 and ensure the path of icdconverter.csv is correct, or you will get an error. Besides, the ICD-9 code in icdconverter.csv are ICD-9 GEM, which means it does not contain the period symbol.
+```sh
+#Excecute the icd9_icd10_mapper.sql file to load the icdconverter.csv spreadsheet and build the mapping table for SynPUF data. This will create a table called icd9_icd10_mapper, with column condition_source_concept_id(OMOP ID for that ICD-9 code), condition_source_value(ICD-9 code), icd10(corresponding ICD-10 code).
+psql -h host -U username -d databasename -a -f icd9_icd10_mapper.sql
 ```
 We built a mapping dictionary from a csv spreadsheet provided by Lussier’s lab, where relationship between ICD-9 and ICD-10 were clustered into four categories, one-to-one, many-to-one, one-to-many and no relationship. Through prioritizing these four kinds of relationship(one-to-one > many-to-one > one-to-many > no relationship ), the method can return the optimal mapping result. Meanwhile, inside each searching step, we also applied a fuzzy mapping process if we did not find it in the dictionary with the exact code.
 ## drug-disease relationship validation
